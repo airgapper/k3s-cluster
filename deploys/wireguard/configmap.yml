@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: wireguard
+  name: wg0-conf-tmpl
+  labels:
+    app: wireguard
+data:
+  wg0.conf.tmpl: |
+   [Interface]
+   ListenPort = 9999
+   PrivateKey = SERVER_KEY
+
+   [Peer]
+   # iphone7
+   PublicKey = ImdRbhk5z7CMSu9tcJDF+PbEgRmA0E36uhWr0uiE/D0=
+   AllowedIPs = 10.1.30.0/24
+   
+   [Peer]
+   # xbox
+   PublicKey = /jPHcCBYrSGujwdSUyEIZ5xHpQXNpbuuhuCrnRAhqlQ=
+   AllowedIPs = 10.1.40.0/24

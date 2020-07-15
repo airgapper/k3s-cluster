@@ -1,0 +1,56 @@
+## forked from blog.levine.sh 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wireguard
+  namespace: wireguard
+  labels:
+    app: wireguard
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: wireguard
+  template:
+    metadata:
+      labels:
+        app: wireguard
+    spec:
+      restartPolicy: Always
+      volumes:
+        - name: wg0-conf-tmpl
+          configMap:
+            name: wg0-conf-tmpl
+      containers:
+        - name: wireguard
+          image: joelrebello/wg
+          imagePullPolicy: Always
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/tmp/if-up-wg0"]
+            preStop:
+              exec:
+                command: ["/tmp/if-down-wg0"]
+          command: ["tail",  "-f", "/dev/null"]
+          volumeMounts:
+            - name: wg0-conf-tmpl
+              mountPath: /tmp/wg0.conf.tmpl
+              subPath: wg0.conf.tmpl
+              readOnly: true
+          env:
+            - name: SERVER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: wg0-key
+                  key: wg0.key
+          ports:
+            - containerPort: 9999
+              protocol: UDP
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN

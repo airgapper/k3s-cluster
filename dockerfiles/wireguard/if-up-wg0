@@ -1,0 +1,17 @@
+#!/bin/sh
+# tmpl file is expected to be placed in via k8s
+TMPL=/tmp/wg0.conf.tmpl
+CONF=/etc/wireguard/wg0.conf
+
+ip link add dev wg0 type wireguard
+PEERS=$(awk  '/AllowedIPs/{print $3}' $TMPL)
+for p in $PEERS;
+do
+  ip addr add $p dev wg0
+done
+ip link set wg0 up
+cat $TMPL | sed -e 's/SERVER_KEY/'"$SERVER_KEY"'/g' > $CONF
+wg setconf wg0 $CONF
+iptables -A FORWARD -i wg0 -j ACCEPT
+iptables -A FORWARD -o wg0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
